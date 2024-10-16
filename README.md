@@ -22,13 +22,13 @@ This project uses OpenCV and MediaPipe to perform real-time face detection, face
 
 1. Clone this repository:
    ```
-   git clone https://github.com/yourusername/face-detection-project.git
-   cd face-detection-project
+   git clone git@github.com:paddleboard-ai/glance.git
+   cd glance
    ```
 
 2. Install the required packages:
    ```
-   pip install opencv-python mediapipe numpy
+   pip install -r requirements.txt
    ```
 
 ## Usage
