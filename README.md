@@ -10,6 +10,7 @@ This project uses OpenCV and MediaPipe to perform real-time face detection, face
 - Eye roll detection
 - Mouth open/close detection
 - Webcam integration
+- NEW: Web-based facial and hand detection 
 
 ## Requirements
 
@@ -42,6 +43,17 @@ python cv_face.py
 - The program will open your webcam feed and display a face mesh with colored eyes.
 - Eye roll detection results will be printed to the console.
 - Press 'ESC' to exit the program.
+
+Alternatively, you can use the web-based version. In which case:
+
+```
+python3 -m http.server
+```
+
+This will start a web server listening on http://127.0.0.1:8000 in the current directory. To see the demo in action:
+
+* Go to http://127.0.0.1/face.html
+* Click on the button with camera and user emoji to start (it will request webcam access permission)
 
 ## How it works
 

@@ -232,14 +232,6 @@ function ouputBlendShapes(el, blendShapes, stats_for) {
 
   htmlMaker += "</div>";
   el.innerHTML = htmlMaker;
-
-  // Add drag and drop functionality
-  // const items = el.querySelectorAll('.blend-shape-item');
-  // items.forEach(item => {
-  //   item.addEventListener('dragstart', dragStart);
-  //   item.addEventListener('dragover', dragOver);
-  //   item.addEventListener('drop', drop);
-  // });
 }
 
 function describeHands(el, results, stats_for) {
@@ -268,25 +260,4 @@ function describeHands(el, results, stats_for) {
   htmlMaker += "</div>";
   el.innerHTML = htmlMaker;
 
-}
-
-function dragStart(e) {
-  e.dataTransfer.setData('text/plain', e.target.dataset.index);
-}
-
-function dragOver(e) {
-  e.preventDefault();
-}
-
-function drop(e) {
-  e.preventDefault();
-  const fromIndex = e.dataTransfer.getData('text/plain');
-  const toIndex = e.target.closest('.blend-shape-item').dataset.index;
-  const items = document.querySelectorAll('.blend-shape-item');
-  const itemArray = Array.from(items);
-  const element = itemArray[fromIndex];
-  const parent = element.parentNode;
-  const reference = itemArray[toIndex];
-  
-  parent.insertBefore(element, reference);
 }
