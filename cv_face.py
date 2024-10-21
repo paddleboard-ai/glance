@@ -1,108 +1,57 @@
 import cv2
-import mediapipe as mp
-import numpy as np
+import subprocess
+import re
 
-color_map = {
-    'fucsia': (202,44,146),
-    'teal': (0,128,128),
-    'white': (255,255,255)
-}
 
-# Initialize MediaPipe Face Mesh
-mp_face_mesh = mp.solutions.face_mesh
-face_mesh = mp_face_mesh.FaceMesh(max_num_faces=1, refine_landmarks=True, min_detection_confidence=0.5, min_tracking_confidence=0.5)
-# More info about mediapipe's facial landmarks 
-# https://github.com/google-ai-edge/mediapipe/blob/master/mediapipe/modules/face_geometry/data/canonical_face_model_uv_visualization.png
-mp_drawing = mp.solutions.drawing_utils
-drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1, color=color_map['white'])
+def list_video_devices_windows():
+    try:
+        output = subprocess.check_output(["powershell", "-Command",
+                                          "Get-PnpDevice | Where-Object {$_.Class -eq 'Image' -and $_.Status -eq 'OK'} | Select-Object FriendlyName"],
+                                         universal_newlines=True)
+        devices = re.findall(r'(?<=FriendlyName\s:\s).+', output)
+        return devices
+    except subprocess.CalledProcessError:
+        print("Error executing PowerShell command. Make sure you have the necessary permissions.")
+        return []
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return []
 
-def create_blank_image(height, width):
-    return np.zeros((height, width, 3), np.uint8)
 
-def draw_colored_eyes(image, landmarks):
-    # Right eye (green)
-    right_eye = [landmarks[p] for p in [33, 246, 161, 160, 159, 158, 157, 173, 133, 155, 154, 153, 145, 144, 163, 7]]
-    right_eye_points = np.array([(int(p.x * image.shape[1]), int(p.y * image.shape[0])) for p in right_eye])
-    cv2.fillPoly(image, [right_eye_points], color_map['teal'])
+def try_open_camera(index):
+    cap = cv2.VideoCapture(index)
+    if cap.isOpened():
+        ret, frame = cap.read()
+        cap.release()
+        return ret
+    return False
 
-    # Left eye (red)
-    left_eye = [landmarks[p] for p in [362, 398, 384, 385, 386, 387, 388, 466, 263, 249, 390, 373, 374, 380, 381, 382]]
-    left_eye_points = np.array([(int(p.x * image.shape[1]), int(p.y * image.shape[0])) for p in left_eye])
-    cv2.fillPoly(image, [left_eye_points], color_map['fucsia'])
-
-def detect_eye_roll(landmarks, threshold=0.1):
-    # Get iris landmarks
-    left_iris = landmarks[468]
-    right_iris = landmarks[473]
-
-    # Get eye top and bottom landmarks
-    left_eye_top = landmarks[159]
-    left_eye_bottom = landmarks[145]
-    right_eye_top = landmarks[386]
-    right_eye_bottom = landmarks[374]
-
-    # Calculate the relative position of iris
-    left_eye_height = left_eye_bottom.y - left_eye_top.y
-    right_eye_height = right_eye_bottom.y - right_eye_top.y
-    
-    left_iris_position = (left_iris.y - left_eye_top.y) / left_eye_height
-    right_iris_position = (right_iris.y - right_eye_top.y) / right_eye_height
-
-    # Check if both irises are close to the top of the eyes
-    return left_iris_position < threshold and right_iris_position < threshold
-
-def is_mouth_open(landmarks, image_shape):
-    upper_lip = landmarks[13]
-    lower_lip = landmarks[14]
-    distance = abs(upper_lip.y - lower_lip.y) * image_shape[0]
-    return distance > 20  # Threshold in pixels
 
 def main():
-    cap = cv2.VideoCapture(0)
-    # Set desired FPS. Some applications benefit from higher FPS capture some you actually want slower
-    desired_fps = 12
-    cap.set(cv2.CAP_PROP_FPS, desired_fps)
-    
-    while cap.isOpened():
-        success, image = cap.read()
-        if not success:
-            print("Ignoring empty camera frame.")
-            continue
+    print("Detecting video devices...")
+    devices = list_video_devices_windows()
 
-        image = cv2.flip(image, 1)
-        rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        results = face_mesh.process(rgb_image)
+    if devices:
+        print("Found the following video devices:")
+        for device in devices:
+            print(device)
+    else:
+        print("No video devices detected by the operating system.")
 
-        blank_image = create_blank_image(image.shape[0], image.shape[1])
+    print("\nTrying to open cameras using OpenCV...")
+    for i in range(10):  # Try indices 0 to 9
+        if try_open_camera(i):
+            print(f"Successfully opened camera at index {i}")
+        else:
+            print(f"Failed to open camera at index {i}")
 
-        if results.multi_face_landmarks:
-            for face_landmarks in results.multi_face_landmarks:
-                mp_drawing.draw_landmarks(
-                    image=blank_image,
-                    landmark_list=face_landmarks,
-                    connections=mp_face_mesh.FACEMESH_TESSELATION,
-                    landmark_drawing_spec=drawing_spec,
-                    connection_drawing_spec=drawing_spec)
-                
-                draw_colored_eyes(blank_image, face_landmarks.landmark)
-                
-                # Detect eye roll
-                eye_rolling = detect_eye_roll(face_landmarks.landmark)
-                # cv2.putText(blank_image, f"Eye Rolling: {'Yes' if eye_rolling else 'No'}", 
-                #             (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-                print(f"Eye Rolling: {'Yes' if eye_rolling else 'No'}")
-                # Detect mouth open
-                mouth_open = is_mouth_open(face_landmarks.landmark, blank_image.shape)
-                print(f"Mouth Open: {'Yes' if mouth_open else 'No'}")
+    print("\nIf no cameras were successfully opened, try the following:")
+    print("1. Check if the webcam is being used by another application.")
+    print("2. Restart your computer and try again.")
+    print("3. Update your webcam drivers.")
+    print("4. Try using a different USB port.")
+    print("5. Check Device Manager to ensure the webcam is properly recognized.")
 
-
-        cv2.imshow('Face Mesh with Eye Roll Detection', blank_image)
-        if cv2.waitKey(5) & 0xFF == 27:  # Press 'ESC' to exit
-            break
-
-    face_mesh.close()
-    cap.release()
-    cv2.destroyAllWindows()
 
 if __name__ == "__main__":
     main()

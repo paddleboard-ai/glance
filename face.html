@@ -1,0 +1,148 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>Hand And Face Recognition</title>
+
+  <style>
+  body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+  }
+  h1 {
+      text-align: center;
+  }
+  #liveView {
+      position: relative;
+      width: 100%;
+      max-width: 640px;
+      margin-bottom: 20px;
+  }
+  #output_canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+  }
+  #webcamButton {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #c71b8e;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+  }
+.emoji {
+  vertical-align: baseline;
+  font-size: 22px;
+}
+.blend-shapes {
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.blend-shape-container {
+  display: grid;
+  grid-template-columns: repeat(5, 3fr); /* Creates 3 columns */
+  gap: 10px;
+}
+
+.blend-shape-item {
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  padding: 5px;
+  cursor: move;
+}
+
+.blend-shape-label {
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 2px;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.blend-shape-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.blend-shape-bar {
+  flex-grow: 1;
+  height: 10px;
+  background-color: #e0e0e0;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.blend-shape-fill {
+  height: 100%;
+  background-color: #4CAF50;
+  transition: width 0.3s ease;
+}
+
+.blend-shape-value {
+  font-size: 10px;
+  min-width: 40px;
+  text-align: right;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .blend-shape-container {
+    grid-template-columns: repeat(2, 1fr); /* 2 columns on smaller screens */
+  }
+}
+
+@media (max-width: 480px) {
+  .blend-shape-container {
+    grid-template-columns: 1fr; /* 1 column on very small screens */
+  }
+}
+</style>
+</head>
+<body>
+    <h2>Hand and Face Detection</h2>
+    <p>Put your best smile and wave at your webcam</p>
+
+    <div id="liveView" class="videoView">
+      <button id="webcamButton">
+        <span></span>
+        <span>Click to start <span class="emoji">&#127909; &#128100;</span></span>
+      </button>
+      <div style="position: relative;">
+        <video id="webcam" style="position: abso" autoplay playsinline></video>
+        <canvas class="output_canvas" id="output_canvas" style="position: absolute; left: 0px; top: 0px;"></canvas>
+      </div>
+    </div>
+    <div class="blend-shapes">
+      <ul class="blend-shapes-list" id="video-blend-shapes"></ul>
+      <ul class="blend-shapes-list" id="hand-stuff"></ul>
+    </div>
+  </section>
+</body>
+</html>
+  
+<script src="script.js" type="module"></script>
+
+  
+</body>
+
+</html>
