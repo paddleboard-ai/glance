@@ -13,7 +13,12 @@ const videoWidth = 480;
 
 const color_map = {
   fucsia: '#CA2C92',
-  teal: '#008080'
+  teal: '#008080',
+  red: '#FF0000',
+  green: '#00FF00',
+  light_grey: '#C0C0C070',
+  grey: '#E0E0E0',
+  solid_black: '#000'
 }
 
 // Before we can use HandLandmarker class we must wait for it to finish
@@ -108,7 +113,7 @@ async function predictWebcam() {
   canvasElement.style.height = videoWidth * radio + "px";
   canvasElement.width = video.videoWidth;
   canvasElement.height = video.videoHeight;
-  canvasElement.style.background = '#000'
+  canvasElement.style.background = color_map.solid_black;
   // Now let's start detecting the stream.
   if (runningMode !== 'VIDEO') {
     runningMode = 'VIDEO';
@@ -126,7 +131,7 @@ async function predictWebcam() {
       drawingUtils.drawConnectors(
         landmarks,
         FaceLandmarker.FACE_LANDMARKS_TESSELATION,
-        { color: "#C0C0C070", lineWidth: 1 }
+        { color: color_map.light_grey, lineWidth: 1 }
       );
       drawingUtils.drawConnectors(
         landmarks,
@@ -151,12 +156,12 @@ async function predictWebcam() {
       drawingUtils.drawConnectors(
         landmarks,
         FaceLandmarker.FACE_LANDMARKS_FACE_OVAL,
-        { color: "#E0E0E0" }
+        { color: color_map.grey }
       );
       drawingUtils.drawConnectors(
         landmarks,
         FaceLandmarker.FACE_LANDMARKS_LIPS,
-        { color: "#E0E0E0" }
+        { color: color_map.grey }
       );
       drawingUtils.drawConnectors(
         landmarks,
@@ -174,12 +179,12 @@ async function predictWebcam() {
         landmarks,
         GestureRecognizer.HAND_CONNECTIONS,
         {
-          color: "#00FF00",
+          color: color_map.green,
           lineWidth: 5
         }
       );
       drawingUtils.drawLandmarks(landmarks, {
-        color: "#FF0000",
+        color: color_map.red,
         lineWidth: 1
       });
     }
@@ -187,21 +192,16 @@ async function predictWebcam() {
       gestureTracker.updateFaceData(results.faceLandmarks);
       
       if (h_results.landmarks.length > 0) {
-        const isThinking = gestureTracker.trackThinkingGesture(
-          h_results.landmarks,
-          performance.now()
-        );
-        
-        if (isThinking) {
-          console.log("Thinking gesture detected!");
-          // Handle gesture detection (e.g., update UI)
+        if (h_results.landmarks.length > 0) {
+          gestureTracker.trackThinkingGesture(h_results.landmarks, performance.now());
+          gestureTracker.trackSilenceGesture(h_results.landmarks, performance.now());
+          gestureTracker.trackThumbsUpGesture(h_results);
         }
+        
+        gestureTracker.drawGestureText(canvasCtx);
       }
     }
   }
-  ouputBlendShapes(videoBlendShapes, results.faceBlendshapes, 'Facemesh Detection');
-  describeHands(handStuffContainer, h_results, 'Hand Gesture Detection');
-  //console.log(h_results.handednesses);
 
   // Call this function again to keep predicting when the browser is ready.
   if (webcamRunning === true) {
@@ -209,55 +209,3 @@ async function predictWebcam() {
   }
 }
 
-function ouputBlendShapes(el, blendShapes, stats_for) {
-  if (!blendShapes.length) {
-    return;
-  }
-
-  let htmlMaker = `<h3>Stats for ${stats_for}</h3><div class='blend-shape-container'>`;
-
-  blendShapes[0].categories.forEach((shape, index) => {
-    htmlMaker += `
-      <div class="blend-shape-item" draggable="true" data-index="${index}">
-        <span class="blend-shape-label">${shape.displayName || shape.categoryName}</span>
-        <div class="blend-shape-bar-container">
-          <div class="blend-shape-bar">
-            <div class="blend-shape-fill" style="width: ${shape.score * 100}%"></div>
-          </div>
-          <span class="blend-shape-value">${(shape.score * 100).toFixed(2)}%</span>
-        </div>
-      </div>
-    `;
-  });
-
-  htmlMaker += "</div>";
-  el.innerHTML = htmlMaker;
-}
-
-function describeHands(el, results, stats_for) {
-  if (!results.handednesses.length) {
-    return;
-  }
-  // console.log(results.gestures);
-  // console.log(results.handednesses);
-
-  let htmlMaker = `<h3>Stats for ${stats_for}</h3><div class='blend-shape-container'>`;
-
-  for ( let i = 0; i < results.handednesses.length; i++) {
-    htmlMaker += `
-      <div class="blend-shape-item" draggable="true" data-index="${i}">
-        <span class="blend-shape-label">${results.handednesses[i][0].displayName } hand</span>
-        <div class="blend-shape-bar-container">
-          <div class="blend-shape-bar">
-            <div class="blend-shape-fill" style="width: ${results.handednesses[i][0].score * 100}%"></div>
-          </div>
-          <span class="blend-shape-value">${(results.handednesses[i][0].score * 100).toFixed(2)}%</span>
-        </div>
-      </div>
-    `;
-  }
-
-  htmlMaker += "</div>";
-  el.innerHTML = htmlMaker;
-
-}
