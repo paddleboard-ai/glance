@@ -1,8 +1,6 @@
 import vision from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3";
 const { FaceLandmarker, FilesetResolver, DrawingUtils, GestureRecognizer } = vision;
 import GestureTracker from './gesture_tracker.js';
-const videoBlendShapes = document.getElementById("video-blend-shapes");
-const handStuffContainer = document.getElementById("hand-stuff");
 
 let faceLandmarker;
 let gestureRecognizer;
@@ -21,7 +19,7 @@ const color_map = {
   solid_black: '#000'
 }
 
-// Before we can use HandLandmarker class we must wait for it to finish
+// From MediaPipe folks: Before we can use HandLandmarker class we must wait for it to finish
 // loading. Machine Learning models can be large and take a moment to
 // get everything needed to run.
 async function createFaceLandmarker() {

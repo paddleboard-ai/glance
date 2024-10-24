@@ -18,11 +18,18 @@ class GestureTracker {
       this.activeGestures = [];
     }
 
-  updateFaceData(faceLandmarks) {
+    calculate_distance (point1, point2) {
+      return Math.sqrt(
+        Math.pow(point1.x - point2.x, 2) + 
+        Math.pow(point1.y - point2.y, 2)
+      );
+    }
+
+    updateFaceData(faceLandmarks) {
       if (faceLandmarks && faceLandmarks.length > 0) {
       this.faceData = faceLandmarks[0];
       }
-  }
+    }
 
   isHandNearChin(handLandmark) {
       if (!this.faceData) return false;
@@ -32,10 +39,7 @@ class GestureTracker {
       const hand = handLandmark[8]; // Using palm base point
       
       // Calculate distance between hand and chin
-      const distance = Math.sqrt(
-      Math.pow(chin.x - hand.x, 2) + 
-      Math.pow(chin.y - hand.y, 2)
-      );
+      const distance = this.calculate_distance(chin, hand);
       
       return distance < 0.10; // Threshold for "near chin"
   }
@@ -51,11 +55,7 @@ class GestureTracker {
       y: (upperLip.y + lowerLip.y) / 2
     };
 
-    const distance = Math.sqrt(
-      Math.pow(lipsMidpoint.x - indexFingerTip.x, 2) + 
-      Math.pow(lipsMidpoint.y - indexFingerTip.y, 2)
-    );
-
+    const distance = this.calculate_distance(lipsMidpoint, indexFingerTip);
     return distance < 0.05;  // Tighter threshold for lips
   }
 
