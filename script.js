@@ -1,6 +1,6 @@
 import vision from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3";
 const { FaceLandmarker, FilesetResolver, DrawingUtils, GestureRecognizer } = vision;
-import GestureTracker from './gesture_tracker.js';
+import { GestureTracker } from './gesture_tracker.js';
 
 let faceLandmarker;
 let gestureRecognizer;
@@ -9,7 +9,7 @@ let enableWebcamButton;
 let webcamRunning = false;
 const videoWidth = 480;
 
-const color_map = {
+const color_map = Object.freeze({
   fucsia: '#CA2C92',
   teal: '#008080',
   red: '#FF0000',
@@ -17,7 +17,8 @@ const color_map = {
   light_grey: '#C0C0C070',
   grey: '#E0E0E0',
   solid_black: '#000'
-}
+});
+
 
 // From MediaPipe folks: Before we can use HandLandmarker class we must wait for it to finish
 // loading. Machine Learning models can be large and take a moment to
@@ -189,10 +190,11 @@ async function predictWebcam() {
     if (results.faceLandmarks) {
       gestureTracker.updateFaceData(results.faceLandmarks);
       
-      if (h_results.landmarks.length > 0) {
+      if (results.faceLandmarks.length > 0) {
         if (h_results.landmarks.length > 0) {
           gestureTracker.trackThinkingGesture(h_results.landmarks, performance.now());
           gestureTracker.trackSilenceGesture(h_results.landmarks, performance.now());
+          gestureTracker.trackMindBlownGesture(h_results.landmarks, performance.now());
           gestureTracker.trackThumbsUpGesture(h_results);
         }
         
