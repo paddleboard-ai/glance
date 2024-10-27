@@ -7,7 +7,7 @@ let gestureRecognizer;
 let runningMode = "VIDEO";
 let enableWebcamButton;
 let webcamRunning = false;
-const videoWidth = 480;
+const videoWidth = 800;
 
 const color_map = Object.freeze({
   fucsia: '#CA2C92',
@@ -41,6 +41,7 @@ async function createFaceLandmarker() {
     baseOptions: {
       modelAssetPath: "https://storage.googleapis.com/mediapipe-tasks/gesture_recognizer/gesture_recognizer.task"
     },
+    delegate: "GPU",
     runningMode,
     numHands: 2
   });

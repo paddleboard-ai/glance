@@ -1,75 +1,150 @@
-# Face Detection and Eye Roll Detection
+# Glance
 
-This project uses OpenCV and MediaPipe to perform real-time face detection, face mesh rendering, and eye roll detection using a webcam feed.
+A lightweight JavaScript framework for real-time face and gesture detection in web browsers using MediaPipe. This framework makes it easy to implement and track custom gestures using webcam input.
 
 ## Features
 
-- Real-time face detection
-- Face mesh rendering
-- Colored eye highlighting
-- Eye roll detection
-- Mouth open/close detection
+- Real-time face detection and mesh rendering
+- Hand gesture recognition
+- Built-in gesture detection:
+  - Thinking (hand on chin)
+  - Silence (finger on lips)
+  - Mind Blown (hands expanding from temples)
+  - Thumbs Up
+- Extensible gesture system
 - Webcam integration
-- NEW: Web-based facial and hand detection 
+- GPU-accelerated processing
+- Colored face mesh visualization
 
-## Requirements
-
-- Python 3.7+
-- OpenCV
-- MediaPipe
-- NumPy
-
-## Installation
+## Quick Start
 
 1. Clone this repository:
-   ```
+   ```bash
    git clone git@github.com:paddleboard-ai/glance.git
    cd glance
    ```
 
-2. Install the required packages:
+2. Start a local web server:
+   ```bash
+   python3 -m http.server
+   # or use any other local server of your choice
    ```
-   pip install -r requirements.txt
+
+3. Open `http://127.0.0.1:8000/face.html` in your browser and allow webcam access
+
+## Project Structure
+
+```
+├── gestures/
+│   ├── mind_blown.js
+│   ├── silence.js
+│   ├── thinking.js
+│   └── thumbs_up.js
+├── face.html
+├── script.js
+├── gesture_tracker.js
+└── utils.js
+```
+
+### Core Files
+- `face.html`: Main entry point and UI
+- `script.js`: Core detection and rendering logic
+- `gesture_tracker.js`: Gesture management and coordination
+- `utils.js`: Common utility functions
+
+### Gesture System
+Each gesture is implemented as a separate class in the `gestures/` directory. All gestures follow a common pattern:
+
+1. Class-based implementation
+2. Constructor for initialization
+3. Tracking method that returns boolean (gesture detected or not)
+4. Utility methods specific to the gesture
+
+## Adding New Gestures
+
+1. Create a new file in the `gestures/` directory:
+   ```javascript
+   // gestures/my_gesture.js
+   import { Utils } from '../utils.js';
+
+   class MyGesture {
+     constructor() {
+       this.utils = new Utils();
+       this.isActive = false;
+       this.startTime = null;
+     }
+
+     trackMyGesture(handLandmarks, faceData, currentTime) {
+       // Implement gesture detection logic
+       return false; // or true when detected
+     }
+   }
+
+   export { MyGesture };
    ```
 
-## Usage
+2. Add the gesture to `gesture_tracker.js`:
+   ```javascript
+   import { MyGesture } from './gestures/my_gesture.js';
 
-Run the script with:
+   // Add to GESTURE_NAMES
+   const GESTURE_NAMES = Object.freeze({
+     // ... existing gestures ...
+     MY_GESTURE: 'My Gesture'
+   });
 
-```
-python cv_face.py
-```
+   class GestureTracker {
+     constructor() {
+       // ... existing initialization ...
+       this.myGesture = new MyGesture();
+     }
 
-- The program will open your webcam feed and display a face mesh with colored eyes.
-- Eye roll detection results will be printed to the console.
-- Press 'ESC' to exit the program.
+     // Add tracking method
+     trackMyGesture(handLandmarks, currentTime) {
+       if (this.myGesture.trackMyGesture(handLandmarks, this.faceData, currentTime)) {
+         if (!this.activeGestures.includes(GESTURE_NAMES.MY_GESTURE)) {
+           this.activeGestures.push(GESTURE_NAMES.MY_GESTURE);
+         }
+         return;
+       } else {
+         this.activeGestures = this.activeGestures.filter(g => g !== GESTURE_NAMES.MY_GESTURE);
+       }
+     }
+   }
+   ```
 
-Alternatively, you can use the web-based version. In which case:
+3. Update the detection loop in `script.js` to call your new gesture tracker.
 
-```
-python3 -m http.server
-```
+## MediaPipe Integration
 
-This will start a web server listening on http://127.0.0.1:8000 in the current directory. To see the demo in action:
+The framework uses MediaPipe's Vision tasks for:
+- Face landmark detection (468 points)
+- Hand landmark detection (21 points per hand)
+- Gesture recognition
 
-* Go to http://127.0.0.1/face.html
-* Click on the button with camera and user emoji to start (it will request webcam access permission)
+Models are loaded from MediaPipe's CDN, and ran in a WASM container.
 
-## How it works
+## Performance Considerations
 
-1. The script captures video from your webcam.
-2. Each frame is processed to detect facial landmarks using MediaPipe's Face Mesh.
-3. A face mesh is drawn on a blank canvas, with the eyes highlighted in different colors.
-4. The position of the iris relative to the eye is used to detect eye rolling (this is extremelly tricky and often doesn't work)
-5. The processed image is displayed, and eye roll, mouth open detection results are printed to the console.
+- Uses GPU delegation when available
+- Implements cooldown periods for complex gestures
+- Frame-by-frame processing with requestAnimationFrame
 
-## Customization
+## Browser Compatibility
 
-You can customize the colors used in the visualization by modifying the `color_map` dictionary at the beginning of the script. You may also play with the desired_fps and see if you can get better results with more or less frames.
+- Requires WebGL support
+- Needs webcam access
+- Tested on modern versions of Chrome, Brave, and Edge
+- Mobile browser support may vary
 
 ## Contributing
 
-Contributions, issues, and feature requests are welcome. Feel free to check [issues page](https://github.com/paddleboard-ai/glance/issues) if you want to contribute.
+Contributions are welcome! Areas for improvement include:
+- Additional gestures
+- Performance optimizations
+- Mobile browser support
+- UI improvements
+- Documentation
 
 ## License
 
