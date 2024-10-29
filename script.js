@@ -67,7 +67,8 @@ function enableCam(event) {
 
 
   const button = document.getElementById("webcamButton");
-  const buttonIcon = button.querySelector('[data-lucide="camera"]');
+  const buttonIcon = button.querySelector('[data-lucide="camera"]') ||
+                      button.querySelector('[data-lucide="camera-off"]');
   const buttonText = button.querySelector('span');
 
   if (webcamRunning === true) {
