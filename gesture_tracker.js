@@ -106,7 +106,7 @@ class GestureTracker {
   
   drawGestureText(ctx) {
     if (this.activeGestures.length === 0) return;
-    
+    console.log('Active');
     ctx.save();
     ctx.fillStyle = 'white';
     ctx.strokeStyle = 'black';

@@ -19,10 +19,6 @@ const color_map = Object.freeze({
   solid_black: '#000'
 });
 
-
-// From MediaPipe folks: Before we can use HandLandmarker class we must wait for it to finish
-// loading. Machine Learning models can be large and take a moment to
-// get everything needed to run.
 async function createFaceLandmarker() {
   const filesetResolver = await FilesetResolver.forVisionTasks(
     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
@@ -36,7 +32,7 @@ async function createFaceLandmarker() {
     runningMode,
     numFaces: 1
   });
-  // hands
+  
   gestureRecognizer = await GestureRecognizer.createFromOptions(filesetResolver, {
     baseOptions: {
       modelAssetPath: "https://storage.googleapis.com/mediapipe-tasks/gesture_recognizer/gesture_recognizer.task"
@@ -48,53 +44,75 @@ async function createFaceLandmarker() {
 }
 createFaceLandmarker();
 
-
 const video = document.getElementById("webcam");
-const canvasElement = document.getElementById(
-  "output_canvas"
-);
-
+const canvasElement = document.getElementById("output_canvas");
 const canvasCtx = canvasElement.getContext("2d");
 
-// Check if webcam access is supported.
 function hasGetUserMedia() {
   return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
 }
 
-// If webcam supported, add event listener to button for when user
-// wants to activate it.
 if (hasGetUserMedia()) {
-  enableWebcamButton = document.getElementById(
-    "webcamButton"
-  );
+  enableWebcamButton = document.getElementById("webcamButton");
   enableWebcamButton.addEventListener("click", enableCam);
 } else {
   console.warn("getUserMedia() is not supported by your browser");
 }
 
-// Enable the live webcam view and start detection.
 function enableCam(event) {
   if (!faceLandmarker) {
     console.log("Wait! faceLandmarker not loaded yet.");
     return;
   }
 
+
+  const button = document.getElementById("webcamButton");
+  const buttonIcon = button.querySelector('[data-lucide="camera"]');
+  const buttonText = button.querySelector('span');
+
   if (webcamRunning === true) {
     webcamRunning = false;
-    enableWebcamButton.innerText = "ENABLE PREDICTIONS";
-  } else {
-    webcamRunning = true;
-    enableWebcamButton.innerText = "DISABLE PREDICTIONS";
+    
+    // Update button state
+    buttonIcon.setAttribute('data-lucide', 'camera');
+    buttonText.textContent = 'Start Camera';
+    
+    // Stop video tracks
+    if (video.srcObject) {
+      video.srcObject.getTracks().forEach(track => track.stop());
+    }
+    video.srcObject = null;
+    
+    lucide.createIcons();
+    return;
   }
 
-  // getUsermedia parameters.
+  webcamRunning = true;
+  
+  // Update button state
+  buttonIcon.setAttribute('data-lucide', 'camera-off');
+  buttonText.textContent = 'Stop Camera';
+  
+  lucide.createIcons();
+
   const constraints = {
-    video: {facingMode:'environment'}
+    video: {
+      facingMode: 'environment'
+    }
   };
 
-  // Activate the webcam stream.
   navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
     video.srcObject = stream;
+    video.addEventListener("loadedmetadata", () => {
+      // Set canvas dimensions once video metadata is loaded
+      const ratio = video.videoHeight / video.videoWidth;
+      canvasElement.width = video.videoWidth;
+      canvasElement.height = video.videoHeight;
+      canvasElement.style.width = videoWidth + "px";
+      canvasElement.style.height = (videoWidth * ratio) + "px";
+      video.style.width = videoWidth + "px";
+      video.style.height = (videoWidth * ratio) + "px";
+    });
     video.addEventListener("loadeddata", predictWebcam);
   });
 }
@@ -106,26 +124,42 @@ const drawingUtils = new DrawingUtils(canvasCtx);
 const gestureTracker = new GestureTracker();
 
 async function predictWebcam() {
-  const radio = video.videoHeight / video.videoWidth;
-  video.style.width = videoWidth + "px";
-  video.style.height = videoWidth * radio + "px";
-  canvasElement.style.width = videoWidth + "px";
-  canvasElement.style.height = videoWidth * radio + "px";
-  canvasElement.width = video.videoWidth;
-  canvasElement.height = video.videoHeight;
-  canvasElement.style.background = color_map.solid_black;
-  // Now let's start detecting the stream.
+  // Ensure canvas dimensions are valid
+  if (!video.videoWidth || !video.videoHeight) {
+    if (webcamRunning) {
+      window.requestAnimationFrame(predictWebcam);
+    }
+    return;
+  }
+
+  // Update canvas dimensions if they don't match video
+  if (canvasElement.width !== video.videoWidth || 
+      canvasElement.height !== video.videoHeight) {
+    const ratio = video.videoHeight / video.videoWidth;
+    canvasElement.width = video.videoWidth;
+    canvasElement.height = video.videoHeight;
+    canvasElement.style.width = videoWidth + "px";
+    canvasElement.style.height = (videoWidth * ratio) + "px";
+  }
+
   if (runningMode !== 'VIDEO') {
     runningMode = 'VIDEO';
     await faceLandmarker.setOptions({ runningMode: runningMode });
-    await gestureRecognizer.setOptions({ runningMode: runningMode});
+    await gestureRecognizer.setOptions({ runningMode: runningMode });
   }
+
   let startTimeMs = performance.now();
   if (lastVideoTime !== video.currentTime) {
     lastVideoTime = video.currentTime;
     results = faceLandmarker.detectForVideo(video, startTimeMs);
     h_results = gestureRecognizer.recognizeForVideo(video, startTimeMs);
   }
+
+  // Clear the canvas before drawing
+  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+  canvasCtx.fillStyle = color_map.solid_black;
+  canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
+
   if (results.faceLandmarks) {
     for (const landmarks of results.faceLandmarks) {
       drawingUtils.drawConnectors(
@@ -171,42 +205,42 @@ async function predictWebcam() {
       drawingUtils.drawConnectors(
         landmarks,
         FaceLandmarker.FACE_LANDMARKS_LEFT_IRIS,
-        { color: color_map.teal}
+        { color: color_map.teal }
       );
     }
-    for (const landmarks of h_results.landmarks) {
-      drawingUtils.drawConnectors(
-        landmarks,
-        GestureRecognizer.HAND_CONNECTIONS,
-        {
-          color: color_map.green,
-          lineWidth: 5
-        }
-      );
-      drawingUtils.drawLandmarks(landmarks, {
-        color: color_map.red,
-        lineWidth: 1
-      });
+    
+    if (h_results.landmarks) {
+      for (const landmarks of h_results.landmarks) {
+        drawingUtils.drawConnectors(
+          landmarks,
+          GestureRecognizer.HAND_CONNECTIONS,
+          {
+            color: color_map.green,
+            lineWidth: 5
+          }
+        );
+        drawingUtils.drawLandmarks(landmarks, {
+          color: color_map.red,
+          lineWidth: 1
+        });
+      }
     }
-    if (results.faceLandmarks) {
+
+    if (results.faceLandmarks.length > 0) {
       gestureTracker.updateFaceData(results.faceLandmarks);
       
-      if (results.faceLandmarks.length > 0) {
-        if (h_results.landmarks.length > 0) {
-          gestureTracker.trackThinkingGesture(h_results.landmarks, performance.now());
-          gestureTracker.trackSilenceGesture(h_results.landmarks, performance.now());
-          gestureTracker.trackMindBlownGesture(h_results.landmarks, performance.now());
-          gestureTracker.trackThumbsUpGesture(h_results);
-        }
-        
-        gestureTracker.drawGestureText(canvasCtx);
+      if (h_results.landmarks?.length > 0) {
+        gestureTracker.trackThinkingGesture(h_results.landmarks, performance.now());
+        gestureTracker.trackSilenceGesture(h_results.landmarks, performance.now());
+        gestureTracker.trackMindBlownGesture(h_results.landmarks, performance.now());
+        gestureTracker.trackThumbsUpGesture(h_results);
       }
+      
+      gestureTracker.drawGestureText(canvasCtx);
     }
   }
 
-  // Call this function again to keep predicting when the browser is ready.
   if (webcamRunning === true) {
     window.requestAnimationFrame(predictWebcam);
   }
 }
-
