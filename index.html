@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Gesture Capture And Detection</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js"></script>
+    </head>
+    <body class="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 p-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-indigo-900 mb-4 flex items-center justify-center gap-2">
+                    <i data-lucide="sparkles" class="text-purple-500"></i>
+                    Gesture Capture And Detection
+                    <i data-lucide="sparkles" class="text-purple-500"></i>
+                </h1>
+                <p class="text-lg text-indigo-700">Express yourself with magical gestures!</p>
+            </div>
+
+            <!-- Main Content -->
+            <div class="bg-white rounded-3xl shadow-xl p-8 mb-8">
+                <!-- Camera View -->
+                <div id="liveView" class="videoView bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-8 text-center cursor-pointer hover:from-indigo-100 hover:to-purple-100 transition-colors">
+                    <div class="flex flex-col items-center gap-4">
+                        <i data-lucide="camera" class="text-indigo-600" size="48"></i>
+                        <button id="webcamButton" class="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 py-3 rounded-full font-medium hover:from-indigo-600 hover:to-purple-600 transition-colors flex items-center gap-2">
+                            <i data-lucide="camera" size="20"></i>
+                            Start Camera
+                        </button>
+                    </div>
+                    <video id="webcam" style="display: none"></video>
+                    <canvas id="output_canvas" class="mt-6 rounded-xl mx-auto"></canvas>
+                </div>
+
+                <!-- Tips Section -->
+                <div class="space-y-6 mt-8">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i data-lucide="info" class="text-purple-500"></i>
+                        <h2 class="text-xl font-semibold text-indigo-900">Gesture Tips</h2>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Mind Blown Tip -->
+                        <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+                            <div class="flex items-center gap-3 mb-4">
+                                <i data-lucide="hand" class="text-purple-500"></i>
+                                <h3 class="font-semibold text-lg text-indigo-900">Mind Blown Gesture</h3>
+                            </div>
+                            <ol class="space-y-2">
+                                <li class="flex items-start gap-2 text-indigo-700">
+                                    <span class="bg-purple-100 text-purple-700 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm">1</span>
+                                    Join fingertips together
+                                </li>
+                                <li class="flex items-start gap-2 text-indigo-700">
+                                    <span class="bg-purple-100 text-purple-700 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm">2</span>
+                                    Place hands at your temples
+                                </li>
+                                <li class="flex items-start gap-2 text-indigo-700">
+                                    <span class="bg-purple-100 text-purple-700 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm">3</span>
+                                    Spread fingers outward explosively
+                                </li>
+                            </ol>
+                        </div>
+
+                        <!-- Thinking Tip -->
+                        <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+                            <div class="flex items-center gap-3 mb-4">
+                                <i data-lucide="smile-plus" class="text-purple-500"></i>
+                                <h3 class="font-semibold text-lg text-indigo-900">Thinking Pose</h3>
+                            </div>
+                            <ol class="space-y-2">
+                                <li class="flex items-start gap-2 text-indigo-700">
+                                    <span class="bg-purple-100 text-purple-700 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm">1</span>
+                                    Place your hand under your chin
+                                </li>
+                                <li class="flex items-start gap-2 text-indigo-700">
+                                    <span class="bg-purple-100 text-purple-700 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm">2</span>
+                                    Hold the pose naturally
+                                </li>
+                                <li class="flex items-start gap-2 text-indigo-700">
+                                    <span class="bg-purple-100 text-purple-700 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm">3</span>
+                                    Wait for detection
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Blend Shapes Section -->
+                <div class="blend-shapes mt-8"></div>
+            </div>
+
+            <!-- Quick Guide -->
+            <div class="bg-white/80 backdrop-blur rounded-2xl p-6 shadow-lg">
+                <div class="flex items-center gap-2 mb-4">
+                    <i data-lucide="info" class="text-purple-500"></i>
+                    <h2 class="text-xl font-semibold text-indigo-900">Quick Guide</h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-indigo-700">
+                    <div class="flex items-center gap-2">
+                        <div class="h-2 w-2 rounded-full bg-purple-500 flex-shrink-0"></div>
+                        <span>Click Start Camera to begin</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="h-2 w-2 rounded-full bg-purple-500 flex-shrink-0"></div>
+                        <span>Allow camera access when prompted</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="h-2 w-2 rounded-full bg-purple-500 flex-shrink-0"></div>
+                        <span>Try the gestures shown above</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                lucide.createIcons();
+            });
+        </script>
+        <script type="module" src="script.js"></script>
+    </body>
+</html>
