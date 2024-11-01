@@ -3,12 +3,14 @@ import { SilenceGesture } from './gestures/silence.js';
 import { ThinkingGesture } from './gestures/thinking.js';
 import { ThumbsUpGesture } from './gestures/thumbs_up.js';
 import { MindBlownGesture } from './gestures/mind_blown.js';
+import { HeadShakeGesture } from './gestures/head_shake.js';
 
 const GESTURE_NAMES = Object.freeze({
   THINKING: 'Thinking',
   SILENCE: 'Silence',
   THUMBS_UP: 'Thumbs Up',
-  MIND_BLOWN: 'Mind Blown'
+  MIND_BLOWN: 'Mind Blown',
+  HEAD_SHAKE: 'Head Shake'
 });
 
 // TODO: refactor out rest of gestures into their own class
@@ -21,6 +23,7 @@ class GestureTracker {
     this.thinkingGesture = new ThinkingGesture();
     this.thumbsUpGesture = new ThumbsUpGesture();
     this.mindBlownGesture = new MindBlownGesture();
+    this.headShakeGesture = new HeadShakeGesture();
   }
 
   updateFaceData(faceLandmarks) {
@@ -29,6 +32,21 @@ class GestureTracker {
     }
   }
 
+  trackHeadShakeGesture(currentTime) {
+    if (!this.faceData) {
+      this.activeGestures = this.activeGestures.filter(g => g !== GESTURE_NAMES.HEAD_SHAKE);
+      return;
+    }
+
+    if (this.headShakeGesture.trackHeadShake(this.faceData, currentTime)) {
+      if (!this.activeGestures.includes(GESTURE_NAMES.HEAD_SHAKE)) {
+        this.activeGestures.push(GESTURE_NAMES.HEAD_SHAKE);
+      }
+      return;
+    } else {
+      this.activeGestures = this.activeGestures.filter(g => g !== GESTURE_NAMES.HEAD_SHAKE);
+    }
+  }
 
   trackMindBlownGesture(handLandmarks, currentTime) {
     if (!handLandmarks || handLandmarks.length === 0) {

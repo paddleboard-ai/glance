@@ -229,12 +229,14 @@ async function predictWebcam() {
 
     if (results.faceLandmarks.length > 0) {
       gestureTracker.updateFaceData(results.faceLandmarks);
+      gestureTracker.trackHeadShakeGesture(performance.now());
       
       if (h_results.landmarks?.length > 0) {
         gestureTracker.trackThinkingGesture(h_results.landmarks, performance.now());
         gestureTracker.trackSilenceGesture(h_results.landmarks, performance.now());
         gestureTracker.trackMindBlownGesture(h_results.landmarks, performance.now());
         gestureTracker.trackThumbsUpGesture(h_results);
+        gestureTracker.trackHeadShakeGesture(performance.now());
       }
       
       gestureTracker.drawGestureText(canvasCtx);
