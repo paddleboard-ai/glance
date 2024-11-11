@@ -237,6 +237,10 @@ async function predictWebcam() {
         gestureTracker.trackMindBlownGesture(h_results.landmarks, performance.now());
         gestureTracker.trackThumbsUpGesture(h_results);
         gestureTracker.trackHeadShakeGesture(performance.now());
+        gestureTracker.trackASLYesGesture(h_results.landmarks, performance.now());
+        gestureTracker.trackASLHelloGesture(h_results.landmarks, performance.now());
+        gestureTracker.trackASLNoGesture(h_results.landmarks, performance.now());
+        gestureTracker.trackASLThankYouGesture(h_results.landmarks, performance.now());
       }
       
       gestureTracker.drawGestureText(canvasCtx);
